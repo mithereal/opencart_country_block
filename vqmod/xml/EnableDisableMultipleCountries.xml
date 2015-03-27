@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created using vQModerator's XML Generator by The Wizard of Osch for http://www.crystalcopy.nl //-->
+<!-- (Based on vQmod XML Generator by UKSB - http://www.opencart-extensions.co.uk) //-->
+<modification>
+	<id><![CDATA[Enable or Disable Multiple Countries]]></id>
+	<version><![CDATA[1.2]]></version>
+	<vqmver><![CDATA[2.4.0]]></vqmver>
+	<author><![CDATA[INKTech Studio - www.inktechstudio.my]]></author>
+	<file path="admin/controller/localisation/" name="country.php" error="skip">
+		<operation error="skip" info="Insert button Enable &amp; Disable">
+			<search position="before"><![CDATA[$this->data['button_insert']]]></search>
+			<add><![CDATA[				
+				$this->data['column_status'] = $this->language->get('column_status');
+				$this->data['text_enabled'] = $this->language->get('text_enabled');
+				$this->data['text_disabled'] = $this->language->get('text_disabled');
+				$this->data['button_enable'] = $this->language->get('button_enable');
+				$this->data['button_disable'] = $this->language->get('button_disable');
+			]]></add>
+		</operation>
+		<operation error="skip" info="Add Enable &amp; Disable functions">
+			<search position="before"><![CDATA[function delete()]]></search>
+			<add><![CDATA[				public function enable() {
+					$this->language->load('localisation/country');
+ 					$this->document->setTitle($this->language->get('heading_title'));
+					$this->load->model('localisation/country');
+				  	
+				  	if (isset($this->request->post['selected']) && $this->validateED()) {
+						foreach ($this->request->post['selected'] as $country_id) {
+						  	$country_info = $this->model_localisation_country->getCountry($country_id);
+						  	if ($country_info && !$country_info['status']) {
+								$this->model_localisation_country->enableCountry($country_id);
+							} 
+						}
+						
+					  	$this->session->data['success'] = $this->language->get('txt_enable_success');
+					  
+					  	$url = '';
+			
+						if (isset($this->request->get['sort'])) {
+							$url .= '&sort=' . $this->request->get['sort'];
+						}
+
+						if (isset($this->request->get['order'])) {
+							$url .= '&order=' . $this->request->get['order'];
+						}
+
+						if (isset($this->request->get['page'])) {
+							$url .= '&page=' . $this->request->get['page'];
+						}
+
+						$this->redirect($this->url->link('localisation/country', 'token=' . $this->session->data['token'] . $url, 'SSL'));			
+					}
+				  
+				  	$this->getList();
+				}
+
+				public function disable() {
+					$this->language->load('localisation/country');
+ 					$this->document->setTitle($this->language->get('heading_title'));
+					$this->load->model('localisation/country');
+				  	
+				  	if (isset($this->request->post['selected']) && $this->validateED()) {
+						foreach ($this->request->post['selected'] as $country_id) {
+						  	$country_info = $this->model_localisation_country->getCountry($country_id);
+							if ($country_info && $country_info['status']) {
+								$this->model_localisation_country->disableCountry($country_id);
+							} 
+						}
+						
+					  	$this->session->data['success'] = $this->language->get('txt_disable_success');
+					  
+					  	$url = '';
+			
+						if (isset($this->request->get['sort'])) {
+							$url .= '&sort=' . $this->request->get['sort'];
+						}
+
+						if (isset($this->request->get['order'])) {
+							$url .= '&order=' . $this->request->get['order'];
+						}
+
+						if (isset($this->request->get['page'])) {
+							$url .= '&page=' . $this->request->get['page'];
+						}
+
+						$this->redirect($this->url->link('localisation/country', 'token=' . $this->session->data['token'] . $url, 'SSL'));			
+					}
+				  
+				  	$this->getList();
+				}
+
+				]]></add>
+		</operation>
+		<operation error="skip" info="Add validation Enable &amp; Disable functions">
+			<search position="before"><![CDATA[function validateForm()]]></search>
+			<add><![CDATA[				protected function validateED() {
+					if (!$this->user->hasPermission('modify', 'localisation/country')) {
+						$this->error['warning'] = $this->language->get('error_permission');
+					}
+				  
+				  	if (!$this->error) {
+						return true;
+					} else {
+						return false;
+					}
+				}]]></add>
+		</operation>
+		<operation error="skip" info="URL path button Enbale &amp; Disable">
+			<search position="before"><![CDATA[$this->data['insert']]]></search>
+			<add><![CDATA[				
+				$this->data['enable'] = $this->url->link('localisation/country/enable', 'token=' . $this->session->data['token'] . $url, 'SSL');
+				$this->data['disable'] = $this->url->link('localisation/country/disable', 'token=' . $this->session->data['token'] . $url, 'SSL');
+			]]></add>
+		</operation>
+		<operation error="skip" info="Call listing result Status">
+			<search position="after"><![CDATA[$result['iso_code_3']]]></search>
+			<add><![CDATA[				
+				'status' => $result['status'],
+			]]></add>
+		</operation>
+	</file>
+	<file path="admin/view/template/localisation/" name="country_list.tpl" error="skip">
+		<operation error="skip" info="Insert button to TPL">
+			<search position="ibefore" trim="false"><![CDATA[<a href="<?php echo $insert; ?>"]]></search>
+			<add><![CDATA[				<a onclick="$('form').attr('action', '<?php echo $enable; ?>'); $('form').submit();" class="button" style="background-color:#00CC00 !important;"><?php echo $button_enable; ?></a><a onclick="$('form').attr('action', '<?php echo $disable; ?>'); $('form').submit();" class="button" style="background-color:#FF0000 !important;"><?php echo $button_disable; ?></a>
+			]]></add>
+		</operation>
+		<operation error="skip" info="Add column Status on header table list">
+			<search position="after" trim="false"><![CDATA[<?php echo $sort_iso_code_3; ?>"><?php echo $column_iso_code_3; ?>]]></search>
+			<add><![CDATA[				
+				<td class="left"><?php echo $column_status; ?></td>
+			]]></add>
+		</operation>
+		<operation error="skip" info="Call Status data">
+			<search position="after" trim="false"><![CDATA[<?php echo $country['iso_code_3']; ?>]]></search>
+			<add><![CDATA[				
+				
+                <?php if ($country['status']==1) { ?>
+                	<td class="left"><font color="#00CC00"><?php echo $text_enabled; ?></font></td>
+                <?php } else { ?>
+                	<td class="left"><font color="#FF0000"><?php echo $text_disabled; ?></font></td>
+                <?php } ?>
+			]]></add>
+		</operation>
+	</file>
+	<file path="admin/language/english/localisation/" name="country.php" error="skip">
+		<operation error="skip" info="Add custom text language">
+			<search position="after"><![CDATA[$_['text_success']]]></search>
+			<add><![CDATA[				$_['txt_enable_success']	  = 'Success: You have enabled countries!';
+				$_['txt_disable_success']	  = 'Success: You have disabled countries!';
+				$_['column_status']           = 'Status';
+				$_['button_enable']           = 'Enable';
+				$_['button_disable']          = 'Disable';
+			
+]]></add>
+		</operation>
+	</file>
+	<file path="admin/model/localisation/" name="country.php" error="skip">
+		<operation error="skip" info="Query Status DB for functions">
+			<search position="before"><![CDATA[function getTotalCountries()]]></search>
+			<add><![CDATA[				public function enableCountry($country_id) {
+					$this->db->query("UPDATE " . DB_PREFIX . "country SET status = '1' WHERE country_id = '" . (int)$country_id . "'");
+					
+					$this->cache->delete('country');
+				}
+
+				public function disableCountry($country_id) {
+					$this->db->query("UPDATE " . DB_PREFIX . "country SET status = '0' WHERE country_id = '" . (int)$country_id . "'");
+					
+					$this->cache->delete('country');
+				}
+			]]></add>
+		</operation>
+	</file>
+</modification>
